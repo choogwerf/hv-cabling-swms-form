@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HV Cable Installation – SWMS Form</title>
+  <!--
+    This page is a bespoke web form based on the supplied Safe Work Method Statement
+    (SWMS) for HV cabling.  It retains the original logos and risk‐rating diagrams
+    from the provided document while exposing all of the sign‑off areas as
+    interactive form controls.  Users can add additional rows to any of the
+    signature tables or the task table with one click, ensuring that the form can
+    accommodate teams of varying size.  Each input uses sensible types (e.g. dates
+    for date fields, numbers for risk rankings) to aid validation.  Styles are kept
+    deliberately simple so that the layout matches the clean, tabular appearance of
+    the original Word document.
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      color: #111;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1em;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 6px;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .header img {
+      max-height: 80px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.8em;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.4em;
+    }
+    button.add-row {
+      margin-top: 0.5em;
+      margin-bottom: 1.5em;
+      padding: 0.4em 0.8em;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+    /* Give images a little breathing room */
+    .risk-images img {
+      margin-right: 10px;
+      max-width: 100%;
+      height: auto;
+    }
+    /* Prevent images in the PPE table from becoming too large */
+    .ppe-table img {
+      max-width: 60px;
+      height: auto;
+      display: block;
+      margin: 0 auto 4px;
+    }
+    .ppe-table td {
+      text-align: center;
+      vertical-align: top;
+    }
+  </style>
+  <script>
+    /**
+     * Clone the first body row of the specified table and append it to the end.
+     * All input and textarea values are cleared so that the new row is blank.
+     *
+     * @param {string} tableId The DOM id of the table to extend.
+     * @param {number} columnCount The number of columns to insert for simple tables
+     *                             (used when there is no example row yet).  When
+     *                             omitted, the first row in the tbody is cloned.
+     */
+    function addRow(tableId, columnCount) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      const tbody = table.getElementsByTagName('tbody')[0];
+      let newRow;
+      if (tbody && tbody.rows.length > 0) {
+        // Clone the first existing row
+        newRow = tbody.rows[0].cloneNode(true);
+        // Clear all form controls in the cloned row
+        Array.from(newRow.querySelectorAll('input, textarea')).forEach(el => {
+          if (el.type === 'checkbox') {
+            el.checked = false;
+          } else {
+            el.value = '';
+          }
+        });
+      } else if (columnCount) {
+        // Create a blank row with the specified number of columns
+        newRow = document.createElement('tr');
+        for (let i = 0; i < columnCount; i++) {
+          const td = document.createElement('td');
+          const input = document.createElement('input');
+          input.type = 'text';
+          td.appendChild(input);
+          newRow.appendChild(td);
+        }
+      }
+      if (tbody) tbody.appendChild(newRow);
+    }
+
+    /**
+     * Add a new blank row to the task table.  The job sequence, hazards and
+     * controls columns use textarea elements to accommodate longer text, while
+     * the risk rankings use number inputs constrained to 1–5.
+     */
+    function addTaskRow() {
+      const table = document.getElementById('task-table');
+      if (!table) return;
+      const tbody = table.getElementsByTagName('tbody')[0];
+      const row = document.createElement('tr');
+      const cols = ['job', 'hazards', 'controls', 'init', 'res', 'resp'];
+      cols.forEach((col, index) => {
+        const td = document.createElement('td');
+        if (index < 3) {
+          const textarea = document.createElement('textarea');
+          textarea.rows = 3;
+          textarea.name = col + '[]';
+          td.appendChild(textarea);
+        } else if (index < 5) {
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.min = 1;
+          input.max = 5;
+          input.name = col + '[]';
+          td.appendChild(input);
+        } else {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.name = col + '[]';
+          td.appendChild(input);
+        }
+        row.appendChild(td);
+      });
+      tbody.appendChild(row);
+    }
+  </script>
+</head>
+<body>
+  <div class="header">
+    <img src="image2.png" alt="PBE logo" />
+    <img src="image1.png" alt="Torrens to Darlington Alliance logo" />
+  </div>
+  <h1>Safe Work Method Statement</h1>
+  <h2>SWMS‑HV‑01 – HV Cable Installation</h2>
+
+  <h3>Project &amp; Contact Details</h3>
+  <table>
+    <tbody>
+      <tr><th>SWMS Reference No.</th><td>SWMS‑HV‑01</td></tr>
+      <tr><th>Job Description</th><td>HV Cable Installation</td></tr>
+      <tr><th>Location</th><td>T2D Waterloo Corner Precast Facility, 32 Dunn Rd, Waterloo Corner SA 5110</td></tr>
+      <tr><th>Principal Contractor</th><td>T2D CJV (John Holland Pty Ltd &amp; Bouygues Construction Australia Pty Ltd)</td></tr>
+      <tr><th>Project/Site Manager – Contact</th><td>Chris Hoogwerf – 0491 355 760</td></tr>
+      <tr><th>SWMS Prepared By – Date</th><td>Chris Hoogwerf – 24‑Aug‑2025</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Management Review (Sign‑off)</h3>
+  <table id="management-review">
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Name</th>
+        <th>Signature</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" name="m_role[]" /></td>
+        <td><input type="text" name="m_name[]" /></td>
+        <td><input type="text" name="m_signature[]" /></td>
+        <td><input type="date" name="m_date[]" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="button" class="add-row" onclick="addRow('management-review', 4)">Add Row</button>
+
+  <h3>Worker Review (Acknowledgment)</h3>
+  <table id="worker-review">
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Name</th>
+        <th>Signature</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" name="w_role[]" /></td>
+        <td><input type="text" name="w_name[]" /></td>
+        <td><input type="text" name="w_signature[]" /></td>
+        <td><input type="date" name="w_date[]" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="button" class="add-row" onclick="addRow('worker-review', 4)">Add Row</button>
+
+  <h3>High Risk Construction Work (tick all that apply)</h3>
+  <table>
+    <tbody>
+      <tr>
+        <td><input type="checkbox" id="hr1" /> <label for="hr1">Work on or near energised electrical installations or services</label></td>
+        <td><input type="checkbox" id="hr2" /> <label for="hr2">Work in or near a shaft or trench deeper than 1.5 m or a tunnel</label></td>
+        <td><input type="checkbox" id="hr3" /> <label for="hr3">Work in an area with movement of powered mobile plant</label></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="hr4" /> <label for="hr4">Work on, in or adjacent to a traffic corridor</label></td>
+        <td><input type="checkbox" id="hr5" /> <label for="hr5">Risk of a person falling more than 2 metres</label></td>
+        <td><input type="checkbox" id="hr6" /> <label for="hr6">Tilt‑up or precast concrete elements</label></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="hr7" /> <label for="hr7">Demolition of load‑bearing structure</label></td>
+        <td><input type="checkbox" id="hr8" /> <label for="hr8">Work in or near a confined space</label></td>
+        <td><input type="checkbox" id="hr9" /> <label for="hr9">Work on or near chemical, fuel or refrigerant lines</label></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="hr10" /> <label for="hr10">Work on or near pressurised gas mains or piping</label></td>
+        <td><input type="checkbox" id="hr11" /> <label for="hr11">Use of explosives</label></td>
+        <td><input type="checkbox" id="hr12" /> <label for="hr12">Work in/near water with drowning risk</label></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Mandatory Site‑Specific PPE</h3>
+  <table class="ppe-table">
+    <tbody>
+      <tr>
+        <td><input type="checkbox" id="ppe1" />
+          <label for="ppe1">
+            <img src="image3.jpeg" alt="Hard Hat" />
+            <br />Hard Hat
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe2" />
+          <label for="ppe2">
+            <img src="image4.jpeg" alt="Steel‑capped Boots" />
+            <br />Steel‑capped Boots
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe3" />
+          <label for="ppe3">
+            <img src="image5.jpeg" alt="Hi‑Vis Clothing" />
+            <br />Hi‑Vis Clothing
+          </label>
+        </td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="ppe4" />
+          <label for="ppe4">
+            <img src="image6.jpeg" alt="Long Sleeves &amp; Trousers" />
+            <br />Long Sleeves &amp; Trousers
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe5" />
+          <label for="ppe5">
+            <img src="image7.jpeg" alt="Safety Glasses" />
+            <br />Safety Glasses
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe6" />
+          <label for="ppe6">
+            <img src="image8.jpeg" alt="Gloves" />
+            <br />Gloves
+          </label>
+        </td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="ppe7" />
+          <label for="ppe7">
+            <img src="image9.jpeg" alt="Hearing Protection" />
+            <br />Hearing Protection
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe8" />
+          <label for="ppe8">
+            <img src="image10.jpeg" alt="Goggles" />
+            <br />Goggles
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe9" />
+          <label for="ppe9">
+            <img src="image11.jpeg" alt="P1/2 Mask" />
+            <br />P1/2 Mask
+          </label>
+        </td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="ppe10" />
+          <label for="ppe10">
+            <img src="image12.jpeg" alt="P3 Mask" />
+            <br />P3 Mask
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe11" />
+          <label for="ppe11">
+            <img src="image13.jpeg" alt="Breathing Apparatus" />
+            <br />Breathing Apparatus
+          </label>
+        </td>
+        <td><input type="checkbox" id="ppe12" />
+          <label for="ppe12">
+            <img src="image14.jpeg" alt="Harness / Fall Arrest" />
+            <br />Harness / Fall Arrest
+          </label>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Safe Work Method – Steps, Hazards &amp; Controls</h3>
+  <table id="task-table">
+    <thead>
+      <tr>
+        <th>Job Sequence</th>
+        <th>Hazards</th>
+        <th>Controls</th>
+        <th>Initial Risk (1–5)</th>
+        <th>Residual Risk (1–5)</th>
+        <th>Responsible Person</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><textarea rows="3" name="job[]"></textarea></td>
+        <td><textarea rows="3" name="hazards[]"></textarea></td>
+        <td><textarea rows="3" name="controls[]"></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="button" class="add-row" onclick="addTaskRow()">Add Row</button>
+
+  <h3>Change Management / Amendments</h3>
+  <table id="change-management">
+    <thead>
+      <tr>
+        <th>Review No.</th>
+        <th>Amendment Reason / Details</th>
+        <th>Change Management Actions (communications)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" name="review_no[]" /></td>
+        <td><input type="text" name="amendment_details[]" /></td>
+        <td><input type="text" name="change_actions[]" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="button" class="add-row" onclick="addRow('change-management', 3)">Add Row</button>
+
+  <h3>SWMS Acknowledgement &amp; Sign‑On</h3>
+  <table id="acknowledgement">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Print Name</th>
+        <th>Signature</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="checkbox" name="acknowledged[]" /></td>
+        <td><input type="text" name="ack_name[]" /></td>
+        <td><input type="text" name="ack_signature[]" /></td>
+        <td><input type="date" name="ack_date[]" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="button" class="add-row" onclick="addRow('acknowledgement', 4)">Add Row</button>
+
+  <h3>Risk Rating Guide</h3>
+  <div class="risk-images">
+    <img src="image15.png" alt="Likelihood of Occurrence" />
+    <img src="image16.png" alt="Action Required" />
+    <img src="image17.png" alt="Risk Matrix" />
+  </div>
+</body>
+</html>
