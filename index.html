@@ -75,6 +75,12 @@
       text-align: center;
       vertical-align: top;
     }
+
+        /* Increase the height of read-only textareas in the task table so
+           that the full hazard/control text is visible without scrolling */
+        #task-table textarea[readonly] {
+          height: 100px;
+        }
   </style>
   <script>
     /**
@@ -114,9 +120,9 @@
         }
       }
       if (tbody) tbody.appendChild(newRow);
-      // Reinitialise signature pads if we're adding to the acknowledgement table
-      const table = document.getElementById(tableId);
-      if (table && table.id === 'acknowledgement') {
+      // Reinitialise signature pads if we're adding to the acknowledgement table.
+      // Avoid redeclaring the table variable again: use the existing tableId
+      if (tableId === 'acknowledgement') {
         initSignaturePads();
       }
     }
