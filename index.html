@@ -700,11 +700,41 @@
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        // Save the PDF locally so the user can attach it
-        pdf.save('swms_signed.pdf');
-        // Compose an email using the default mail client. Inform the user to attach the PDF.
-        const mailto = 'mailto:choogwerf@pbegpr.com?subject=SWMS%20Form%20Signed&body=The%20SWMS%20form%20has%20been%20completed.%20A%20PDF%20copy%20named%20swms_signed.pdf%20has%20been%20saved%20to%20your%20device.%20Please%20attach%20it%20to%20this%20email.';
-        window.location.href = mailto;
+        // Build a filename from the main heading (e.g. project title) so that
+        // each submission is clearly identifiable.  Non alphanumeric
+        // characters are replaced with underscores.
+        let headerText = '';
+        const heading = document.querySelector('h1');
+        if (heading) {
+          headerText = heading.textContent.trim().replace(/\s+/g, ' ');
+        }
+        const safeName = headerText
+          ? `${headerText.replace(/[^A-Za-z0-9\-_]/g, '_')}.pdf`
+          : 'swms_signed.pdf';
+        // Create a Blob from the PDF for upload.
+        const pdfBlob = pdf.output('blob');
+        // If a Power Automate flow URL has been configured, post the PDF to
+        // that endpoint.  The flow should handle saving the file to
+        // SharePoint using the received form data.  Replace the empty
+        // string below with your Flow's HTTP trigger URL when ready.
+        const powerAutomateUrl = '';
+        if (powerAutomateUrl) {
+          const formData = new FormData();
+          formData.append('file', pdfBlob, safeName);
+          await fetch(powerAutomateUrl, { method: 'POST', body: formData });
+          alert('Your form has been submitted. It will be saved automatically to SharePoint.');
+        } else {
+          // Otherwise save the PDF locally so the user can attach it
+          pdf.save(safeName);
+          // Compose an email using the default mail client. Inform the user
+          // to attach the saved PDF.  The saved file will have the same
+          // name as generated above.
+          const mailto =
+            'mailto:choogwerf@pbegpr.com?subject=SWMS%20Form%20Signed&body=The%20SWMS%20form%20has%20been%20completed.%20A%20PDF%20copy%20named%20' +
+            encodeURIComponent(safeName) +
+            '%20has%20been%20saved%20to%20your%20device.%20Please%20attach%20it%20to%20this%20email.';
+          window.location.href = mailto;
+        }
       } catch (err) {
         alert('There was an error generating the PDF: ' + err.message);
       }
