@@ -328,6 +328,12 @@
   </table>
 
   <h3>Safe Work Method – Steps, Hazards &amp; Controls</h3>
+  <!--
+    Prepopulate the SWMS steps, hazards and controls with the details from the
+    original document. Users can still add additional rows using the Add Row
+    button. The risk fields and responsible person remain editable to allow
+    site‑specific risk ratings and responsibility assignments.
+  -->
   <table id="task-table">
     <thead>
       <tr>
@@ -340,10 +346,29 @@
       </tr>
     </thead>
     <tbody>
+      <!-- Row populated from SWMS: Delivery of Plant -->
       <tr>
-        <td><textarea rows="3" name="job[]"></textarea></td>
-        <td><textarea rows="3" name="hazards[]"></textarea></td>
-        <td><textarea rows="3" name="controls[]"></textarea></td>
+        <td><textarea rows="3" name="job[]">1. Delivery of Plant</textarea></td>
+        <td><textarea rows="3" name="hazards[]">Injury or plant damage from collisions or rollovers; interaction with pedestrians and fixed objects.</textarea></td>
+        <td><textarea rows="3" name="controls[]">Communicate and follow Vehicle Management Plan; establish traffic control and walkways; verify operator competence and VOC; conduct daily pre‑starts; maintain exclusion zones and positive communication; remove keys when idle; ensure ROPS and safety devices operational; mark and delineate local infrastructure.</textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <!-- Row populated from SWMS: Operation of EWP -->
+      <tr>
+        <td><textarea rows="3" name="job[]">2. Operation of EWP</textarea></td>
+        <td><textarea rows="3" name="hazards[]">Plant failure; falls from height; dropped objects.</textarea></td>
+        <td><textarea rows="3" name="controls[]">Licensed operators with current VOC; pre‑start checks; hard barrier exclusion zone with signage; competent ground rescuer; 2&nbsp;m drop‑zone exclusion; EWP TRA reviewed; secondary protection device fitted.</textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <!-- Row populated from SWMS: Install Electrical Services – Hang/Fix Cables -->
+      <tr>
+        <td><textarea rows="3" name="job[]">3. Install Electrical Services – Hang/Fix Cables</textarea></td>
+        <td><textarea rows="3" name="hazards[]">Falls from height; dropped objects; contact with live services.</textarea></td>
+        <td><textarea rows="3" name="controls[]">Use tethers/lanyards for tools; edge protection and kick boards; 2&nbsp;m exclusion below; apply isolations or maintain separation to energised equipment; correct fixings; permit for works at height signed on.</textarea></td>
         <td><input type="number" min="1" max="5" name="init[]" /></td>
         <td><input type="number" min="1" max="5" name="res[]" /></td>
         <td><input type="text" name="resp[]" /></td>
@@ -392,11 +417,46 @@
   </table>
   <button type="button" class="add-row" onclick="addRow('acknowledgement', 4)">Add Row</button>
 
+  <!-- Submit button to capture the completed form as a PDF and send a notification email -->
+  <div style="margin-top: 20px; text-align: center;">
+    <button type="button" style="padding: 10px 20px; font-size: 16px;" onclick="submitForm()">Submit Form</button>
+  </div>
+
   <h3>Risk Rating Guide</h3>
   <div class="risk-images">
     <img src="image15.png" alt="Likelihood of Occurrence" />
     <img src="image16.png" alt="Action Required" />
     <img src="image17.png" alt="Risk Matrix" />
   </div>
+
+  <!-- External libraries for generating a PDF from the form. html2canvas captures the
+       rendered page into a canvas, and jsPDF converts it into a downloadable PDF.
+       These are loaded from CDN to keep the page self‑contained without a build step. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    async function submitForm() {
+      try {
+        // Generate a PDF of the entire document body
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const element = document.body;
+        const canvas = await html2canvas(element, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        // Save the PDF locally. The user can attach this file to the email if needed.
+        pdf.save('swms_signed.pdf');
+        // Compose an email using the default mail client. Attach the downloaded PDF manually.
+        const mailto = 'mailto:choogwerf@pbegpr.com?subject=SWMS%20Form%20Signed&body=The%20SWMS%20form%20has%20been%20completed.%20The%20PDF%20is%20saved%20as%20swms_signed.pdf%20in%20your%20downloads.%20Please%20attach%20it%20to%20this%20email.';
+        window.location.href = mailto;
+      } catch (err) {
+        alert('There was an error generating the PDF: ' + err.message);
+      }
+    }
+  </script>
 </body>
 </html>
