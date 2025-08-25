@@ -114,6 +114,11 @@
         }
       }
       if (tbody) tbody.appendChild(newRow);
+      // Reinitialise signature pads if we're adding to the acknowledgement table
+      const table = document.getElementById(tableId);
+      if (table && table.id === 'acknowledgement') {
+        initSignaturePads();
+      }
     }
 
     /**
@@ -151,6 +156,61 @@
       });
       tbody.appendChild(row);
     }
+
+  /**
+   * Initialise signature pads (hand‑drawn canvases) for all canvases with the
+   * class 'signature-pad'.  Each canvas captures mouse/touch movements to
+   * produce a freehand signature.  When the user draws on a canvas the
+   * data-signed attribute is set to 'true', allowing the submit handler to
+   * verify that a signature has been provided.
+   */
+  function initSignaturePads() {
+    const pads = document.querySelectorAll('canvas.signature-pad');
+    pads.forEach(canvas => {
+      if (canvas.dataset.initialized) return;
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1.5;
+      let drawing = false;
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+      function start(e) {
+        drawing = true;
+        const { x, y } = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        canvas.dataset.signed = 'true';
+        e.preventDefault();
+      }
+      function move(e) {
+        if (!drawing) return;
+        const { x, y } = getPos(e);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        e.preventDefault();
+      }
+      function end() {
+        drawing = false;
+      }
+      // Mouse events
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      canvas.addEventListener('mouseup', end);
+      canvas.addEventListener('mouseleave', end);
+      // Touch events
+      canvas.addEventListener('touchstart', start);
+      canvas.addEventListener('touchmove', move);
+      canvas.addEventListener('touchend', end);
+      canvas.dataset.initialized = 'true';
+    });
+  }
+
+  // Initialise existing signature pads on page load
+  window.addEventListener('DOMContentLoaded', initSignaturePads);
   </script>
 </head>
 <body>
@@ -327,6 +387,64 @@
     </tbody>
   </table>
 
+  <!--
+    Static guidance from the SWMS document.  These sections list the
+    legislation, standards, emergency procedures and other critical controls
+    that apply to HV cable installation.  They are presented as plain text
+    lists so the information cannot be edited by users filling out the form.
+  -->
+  <h3>Relevant Legislation, Standards &amp; Codes</h3>
+  <ul>
+    <li>Work Health and Safety Act &amp; Regulations (SA)</li>
+    <li>Codes of Practice: Excavation Work; Managing Electrical Risks in the Workplace</li>
+    <li>AS/NZS 3000 (Wiring Rules)</li>
+    <li>AS/NZS 3008 (Selection of Cables)</li>
+  </ul>
+
+  <h3>Emergency Response</h3>
+  <ul>
+    <li><strong>First Aid:</strong> Stop work. Do not touch casualty until circuit isolated.  Trained first aider and kit on site.  Call 000 if required.</li>
+    <li><strong>Emergency Contact:</strong> Notify Site Supervisor; coordinate response.</li>
+    <li><strong>Rescue Equipment:</strong> Insulated rescue crook; appropriate fire extinguisher.</li>
+    <li><strong>Evacuation:</strong> Evacuate upwind; muster at designated assembly point.</li>
+  </ul>
+
+  <h3>Applicable GMRs &amp; Critical Controls (mapped to task controls)</h3>
+  <ul>
+    <li><strong>GMR&nbsp;1 – Traffic, Plant &amp; People</strong>
+      <ul>
+        <li>Exclusion zones, barriers and positive communication in work area.</li>
+        <li>Operators licensed &amp;nbsp;+&amp;nbsp;VOC ≤ 2 years; daily pre‑starts.</li>
+      </ul>
+    </li>
+    <li><strong>GMR&nbsp;4 – Electrical Safety</strong>
+      <ul>
+        <li>EWMP procedure; live testing only on test points; LVR kit &amp;nbsp;+&amp;nbsp;two‑person rule.</li>
+        <li>Restricted Zones for commissioning/live testing; covers reinstated before energisation.</li>
+      </ul>
+    </li>
+    <li><strong>GMR&nbsp;5 – Working at Height</strong>
+      <ul>
+        <li>Secondary protection on EWP; 2&nbsp;m drop‑zones; tethers/lanyards (as applicable).</li>
+      </ul>
+    </li>
+    <li><strong>GMR&nbsp;8 – Isolation</strong>
+      <ul>
+        <li>Competent isolators; personal locks/tags; upstream isolation at lockable points; classify simple vs complex.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>Prohibited &amp; Restricted Tools/Practices</h3>
+  <ul>
+    <li>Comply with T2D‑APP‑PAE‑001‑01 (e.g., no 1&nbsp;mm cut‑off discs; ≥&nbsp;2&nbsp;mm only).</li>
+  </ul>
+
+  <h3>Permits Required for this SWMS</h3>
+  <ul>
+    <li>Simple or Complex Isolations; Energisation (as applicable); Working at Heights (if required); Hot Work (if applicable)</li>
+  </ul>
+
   <h3>Safe Work Method – Steps, Hazards &amp; Controls</h3>
   <!--
     Prepopulate the SWMS steps, hazards and controls with the details from the
@@ -348,27 +466,128 @@
     <tbody>
       <!-- Row populated from SWMS: Delivery of Plant -->
       <tr>
-        <td><textarea rows="3" name="job[]">1. Delivery of Plant</textarea></td>
-        <td><textarea rows="3" name="hazards[]">Injury or plant damage from collisions or rollovers; interaction with pedestrians and fixed objects.</textarea></td>
-        <td><textarea rows="3" name="controls[]">Communicate and follow Vehicle Management Plan; establish traffic control and walkways; verify operator competence and VOC; conduct daily pre‑starts; maintain exclusion zones and positive communication; remove keys when idle; ensure ROPS and safety devices operational; mark and delineate local infrastructure.</textarea></td>
+        <td><textarea rows="3" name="job[]" readonly>1. Delivery of Plant</textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly>Injury or plant damage from collisions or rollovers; interaction with pedestrians and fixed objects.</textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly>Communicate and follow Vehicle Management Plan; establish traffic control and walkways; verify operator competence and VOC; conduct daily pre‑starts; maintain exclusion zones and positive communication; remove keys when idle; ensure ROPS and safety devices operational; mark and delineate local infrastructure.</textarea></td>
         <td><input type="number" min="1" max="5" name="init[]" /></td>
         <td><input type="number" min="1" max="5" name="res[]" /></td>
         <td><input type="text" name="resp[]" /></td>
       </tr>
       <!-- Row populated from SWMS: Operation of EWP -->
       <tr>
-        <td><textarea rows="3" name="job[]">2. Operation of EWP</textarea></td>
-        <td><textarea rows="3" name="hazards[]">Plant failure; falls from height; dropped objects.</textarea></td>
-        <td><textarea rows="3" name="controls[]">Licensed operators with current VOC; pre‑start checks; hard barrier exclusion zone with signage; competent ground rescuer; 2&nbsp;m drop‑zone exclusion; EWP TRA reviewed; secondary protection device fitted.</textarea></td>
+        <td><textarea rows="3" name="job[]" readonly>2. Operation of EWP</textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly>Plant failure; falls from height; dropped objects.</textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly>Licensed operators with current VOC; pre‑start checks; hard barrier exclusion zone with signage; competent ground rescuer; 2&nbsp;m drop‑zone exclusion; EWP TRA reviewed; secondary protection device fitted.</textarea></td>
         <td><input type="number" min="1" max="5" name="init[]" /></td>
         <td><input type="number" min="1" max="5" name="res[]" /></td>
         <td><input type="text" name="resp[]" /></td>
       </tr>
       <!-- Row populated from SWMS: Install Electrical Services – Hang/Fix Cables -->
       <tr>
-        <td><textarea rows="3" name="job[]">3. Install Electrical Services – Hang/Fix Cables</textarea></td>
-        <td><textarea rows="3" name="hazards[]">Falls from height; dropped objects; contact with live services.</textarea></td>
-        <td><textarea rows="3" name="controls[]">Use tethers/lanyards for tools; edge protection and kick boards; 2&nbsp;m exclusion below; apply isolations or maintain separation to energised equipment; correct fixings; permit for works at height signed on.</textarea></td>
+        <td><textarea rows="3" name="job[]" readonly>3. Install Electrical Services – Hang/Fix Cables</textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly>Falls from height; dropped objects; contact with live services.</textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly>Use tethers/lanyards for tools; edge protection and kick boards; 2&nbsp;m exclusion below; apply isolations or maintain separation to energised equipment; correct fixings; permit for works at height signed on.</textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+
+      <!-- Additional blank rows to bring the table to a total of 15 entries.
+           These rows lock the Job Sequence, Hazards and Controls columns (read‑only)
+           so users cannot modify the core content.  They provide space for
+           additional risk ratings and responsible persons to be recorded. -->
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
+        <td><input type="number" min="1" max="5" name="init[]" /></td>
+        <td><input type="number" min="1" max="5" name="res[]" /></td>
+        <td><input type="text" name="resp[]" /></td>
+      </tr>
+      <tr>
+        <td><textarea rows="3" name="job[]" readonly></textarea></td>
+        <td><textarea rows="3" name="hazards[]" readonly></textarea></td>
+        <td><textarea rows="3" name="controls[]" readonly></textarea></td>
         <td><input type="number" min="1" max="5" name="init[]" /></td>
         <td><input type="number" min="1" max="5" name="res[]" /></td>
         <td><input type="text" name="resp[]" /></td>
@@ -376,6 +595,7 @@
     </tbody>
   </table>
   <button type="button" class="add-row" onclick="addTaskRow()">Add Row</button>
+
 
   <h3>Change Management / Amendments</h3>
   <table id="change-management">
@@ -410,7 +630,10 @@
       <tr>
         <td><input type="checkbox" name="acknowledged[]" /></td>
         <td><input type="text" name="ack_name[]" /></td>
-        <td><input type="text" name="ack_signature[]" /></td>
+        <!-- Replace text input with a canvas so users can hand draw their signature -->
+        <td>
+          <canvas class="signature-pad" width="200" height="60" data-signed="false" style="border:1px solid #333;"></canvas>
+        </td>
         <td><input type="date" name="ack_date[]" /></td>
       </tr>
     </tbody>
@@ -438,6 +661,28 @@
   <script>
     async function submitForm() {
       try {
+        // Validate that at least one acknowledgement row has been completed and signed
+        let acknowledged = false;
+        const ackTable = document.getElementById('acknowledgement');
+        if (ackTable) {
+          const rows = ackTable.querySelectorAll('tbody tr');
+          rows.forEach(row => {
+            if (acknowledged) return;
+            const nameInput = row.querySelector('input[name="ack_name[]"]');
+            const dateInput = row.querySelector('input[name="ack_date[]"]');
+            const pad = row.querySelector('canvas.signature-pad');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const date = dateInput ? dateInput.value : '';
+            const signed = pad ? pad.dataset.signed === 'true' : false;
+            if (name && date && signed) {
+              acknowledged = true;
+            }
+          });
+        }
+        if (!acknowledged) {
+          alert('Please complete at least one SWMS Acknowledgement & Sign‑On entry including a hand drawn signature before submitting.');
+          return;
+        }
         // Generate a PDF of the entire document body
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'pt', 'a4');
@@ -448,10 +693,10 @@
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        // Save the PDF locally. The user can attach this file to the email if needed.
+        // Save the PDF locally so the user can attach it
         pdf.save('swms_signed.pdf');
-        // Compose an email using the default mail client. Attach the downloaded PDF manually.
-        const mailto = 'mailto:choogwerf@pbegpr.com?subject=SWMS%20Form%20Signed&body=The%20SWMS%20form%20has%20been%20completed.%20The%20PDF%20is%20saved%20as%20swms_signed.pdf%20in%20your%20downloads.%20Please%20attach%20it%20to%20this%20email.';
+        // Compose an email using the default mail client. Inform the user to attach the PDF.
+        const mailto = 'mailto:choogwerf@pbegpr.com?subject=SWMS%20Form%20Signed&body=The%20SWMS%20form%20has%20been%20completed.%20A%20PDF%20copy%20named%20swms_signed.pdf%20has%20been%20saved%20to%20your%20device.%20Please%20attach%20it%20to%20this%20email.';
         window.location.href = mailto;
       } catch (err) {
         alert('There was an error generating the PDF: ' + err.message);
